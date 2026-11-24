@@ -72,6 +72,20 @@ try {
     await until("document.querySelector('#labDemo').currentTime > .025");
     assert.equal(await evaluate("document.querySelectorAll('.mouth-views svg').length"), 2);
   }
+  const aligned = await evaluate(`import('/pronunciation/motion.mjs').then(module =>
+    Object.values(module.motions).flatMap((motion, index) => motion.clip ? [[index, motion.duration]] : []))`);
+  assert.equal(aligned.length, 37);
+  for (const [index, expectedDuration] of aligned) {
+    await click(`[data-sound="${index}"]`);
+    const duration = await evaluate(`new Promise(resolve => {
+      const audio = document.querySelector('#labDemo');
+      audio.onloadedmetadata = () => resolve(audio.duration);
+      audio.addEventListener('error', () => resolve(false), { once: true });
+      audio.preload = 'metadata';
+      audio.load();
+    })`);
+    assert.ok(Math.abs(duration - expectedDuration) < .09, 'clip duration for index ' + index);
+  }
   await click('[data-sound="28"]');
   await evaluate(`document.querySelector('#labSpeed').value = '.5';
     document.querySelector('#labSpeed').dispatchEvent(new Event('change'))`);
@@ -93,13 +107,16 @@ try {
   assert.equal(await evaluate("document.querySelector('#labDemo').paused"), false);
   await click('#labRepeat');
   await until("document.querySelector('#labDemo').ended");
-  await click('[data-sound="14"]');
+  await click('[data-sound="4"]');
   await click('#labPlay');
   await until("document.querySelector('#labPlay').textContent === 'Reproduzir'");
 
   await evaluate(`document.querySelector('#locale').value = 'en-US';
     document.querySelector('#locale').dispatchEvent(new Event('change'))`);
   await click('[data-sound="28"]');
+  await click('#labBoth');
+  await until("document.querySelector('#labListening').src.endsWith('/thin.mp3') && !document.querySelector('#labListening').paused");
+  await until("document.querySelector('#labListening').src.endsWith('/tin.mp3') && document.querySelector('#labListening').ended");
   await click('#labSurprise');
   assert.equal(await evaluate("document.querySelector('#labGuessWord').disabled"), true);
   await until("!document.querySelector('#labGuessWord').disabled");
@@ -158,7 +175,7 @@ try {
     const { data } = await send('Page.captureScreenshot', { format: 'png' });
     await writeFile(process.env.ERL_SCREENSHOT, Buffer.from(data, 'base64'));
   }
-  console.log('Chromium OK: 4 viewports, 5 clips, pause/resume/loop, silent motion, local listening quiz, MediaRecorder with test device, progress and recognition state.');
+  console.log('Chromium OK: 4 viewports, 37 aligned profiles decoded, 5 prioritized playback paths, pause/resume/loop, silent motion, local listening quiz, MediaRecorder with test device, progress and recognition state.');
 } finally {
   socket.close();
 }

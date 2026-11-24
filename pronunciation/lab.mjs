@@ -2,7 +2,7 @@ import { motions } from './motion.mjs';
 import { diagrams, createMotion } from './view.mjs';
 import { setupRecording } from './recording.mjs';
 
-const localWords = new Set(['thin', 'tin', 'then', 'den', 'ship', 'sheep', 'bad', 'bed']);
+import { segmentsByWord } from './model-data.mjs';
 
 export function createLab(root, { locale, beforeMedia }) {
   const $ = selector => root.querySelector(selector);
@@ -145,24 +145,35 @@ export function createLab(root, { locale, beforeMedia }) {
       guess.forEach(button => { button.disabled = true; });
       answer.textContent = 'Escute a palavra surpresa antes de escolher.';
     };
-    function speak(text, language = locale(), handlers = {}) {
+    const hasLocalModel = word => Object.hasOwn(segmentsByWord, word);
+    const hasLocalPair = words.every(hasLocalModel);
+    function speak(model, language = locale(), handlers = {}) {
       beforeMedia();
       pause();
       mediaStatus.textContent = '';
-      if (language === 'en-US' && localWords.has(text)) {
+      const items = Array.isArray(model) ? model : [model];
+      if (language === 'en-US' && items.every(hasLocalModel) && !handlers.useDeviceVoice) {
         const version = ++modelRevision;
-        listening.src = new URL(`audio/${text}.mp3`, import.meta.url).href;
-        listening.playbackRate = Number($('#labSpeed').value);
+        const speed = Number($('#labSpeed').value);
         listening.onpause = () => { if (!listening.ended) handlers.cancel?.(); };
-        listening.onended = () => {
-          listening.onpause = null;
-          handlers.end?.();
-        };
-        listening.play().catch(() => {
-          if (version !== modelRevision) return;
-          mediaStatus.textContent = 'Não foi possível reproduzir o áudio de escuta.';
-          handlers.error?.();
-        });
+        function playItem(index) {
+          listening.src = new URL(`audio/${items[index]}.mp3`, import.meta.url).href;
+          listening.playbackRate = speed;
+          listening.onended = () => {
+            if (index + 1 < items.length) {
+              playItem(index + 1);
+            } else {
+              listening.onpause = null;
+              handlers.end?.();
+            }
+          };
+          listening.play().catch(() => {
+            if (version !== modelRevision) return;
+            mediaStatus.textContent = 'Não foi possível reproduzir o áudio de escuta.';
+            handlers.error?.();
+          });
+        }
+        playItem(0);
         return;
       }
       if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
@@ -170,7 +181,7 @@ export function createLab(root, { locale, beforeMedia }) {
         handlers.error?.();
         return;
       }
-      const utterance = new SpeechSynthesisUtterance(text);
+      const utterance = new SpeechSynthesisUtterance(items.join(', '));
       utterance.lang = language;
       utterance.rate = Number($('#labSpeed').value) === .5 ? .6 : .9;
       const voices = speechSynthesis.getVoices();
@@ -205,13 +216,14 @@ export function createLab(root, { locale, beforeMedia }) {
       clearRound();
       speak([material.cue, material.detail].filter(Boolean).join(' '), 'pt-BR');
     };
-    $('#labBoth').onclick = () => { clearRound(); speak(words.join(', ')); };
+    $('#labBoth').onclick = () => { clearRound(); speak(words); };
     $('#labSurprise').onclick = () => {
       clearRound();
       const id = round;
       correct = Math.random() < .5 ? 0 : 1;
       answer.textContent = 'Reproduzindo a palavra…';
       speak(words[correct], locale(), {
+        useDeviceVoice: !hasLocalPair,
         end: () => {
           if (id !== round) return;
           answer.textContent = 'Qual palavra você ouviu?';

@@ -1,3 +1,5 @@
+import { targets, segmentsByWord } from './model-data.mjs';
+
 // Positions are schematic coordinates in the lateral view: front is left.
 // Each pose controls tongue tip, body and dorsum, jaw, lip rounding and lip closure.
 const pose = (tip, body, back, jaw, round = 0, close = 0) => ({
@@ -42,7 +44,7 @@ const stop = position => ({
   focus: position, duration: 1,
   frames: [[0, rest], [.28, position], [.54, position], [.63, rest], [1, rest]],
 });
-const clip = (word, focus, segments, voiced = true) => {
+const clip = (word, focus, segments, voiced) => {
   const duration = segments.at(-1)[0];
   return {
     focus, duration, voiced, clip: word,
@@ -50,7 +52,7 @@ const clip = (word, focus, segments, voiced = true) => {
   };
 };
 
-export const motions = {
+const schematicMotions = {
   '/ɪ/': clip('ship', lax, [[0, rest], [.164, sh], [.2733, lax], [.3799, lax],
     [.42, bilabial], [.4994, bilabial], [.6679, rest]]),
   '/iː/': clip('sheep', high, [[0, rest], [.1586, sh], [.2679, high], [.3837, high],
@@ -69,13 +71,45 @@ export const motions = {
   '/θ/': clip('thin', dental, [[0, rest], [.177, rest], [.1973, dental], [.2658, dental],
     [.295, lax], [.3724, lax], [.403, alveolar], [.5484, alveolar], [.7434, rest]], false),
   '/ð/': clip('then', dental, [[0, rest], [.177, rest], [.1973, dental], [.217, dental],
-    [.248, mid], [.3093, mid], [.34, alveolar], [.4555, alveolar], [.6308, rest]]),
+    [.248, mid], [.3093, mid], [.34, alveolar], [.4555, alveolar], [.6308, rest]], true),
   '/s/': hold(hiss), '/z/': hold(hiss), '/ʃ/': hold(sh), '/ʒ/': hold(sh),
   '/h/': hold(openGlottis), '/tʃ/': glide(alveolar, sh), '/dʒ/': glide(alveolar, sh),
   '/m/': hold(bilabial), '/n/': hold(alveolar), '/ŋ/': hold(velar), '/l/': hold(alveolar),
   '/r/': hold(rhotic), '/j/': glide(high, rest, .8), '/w/': glide(roundedHigh, rest, .8),
   '[ɾ]': stop(alveolar), '[ʔ]': stop(closedGlottis), '[ɫ]': hold(darkL), 'linking R': glide(rhotic, rest),
 };
+
+// Map each phone in a model word, including its context, to positions.
+const phonePoses = {
+  pau: rest, ih: lax, iy: high, eh: mid, ae: open, aa: ah, ao: roundedMid,
+  uh: roundedLax, uw: roundedHigh, ah: schematicMotions['/ʌ/'].focus,
+  ax: rest, er: rhotic,
+  ey: [mid, lax], ay: [open, lax], oy: [roundedMid, lax],
+  aw: [open, roundedLax], ow: [central, roundedHigh],
+  p: bilabial, b: bilabial, t: alveolar, d: alveolar, k: velar, g: velar,
+  f: labiodental, v: labiodental, th: dental, dh: dental, s: hiss, z: hiss,
+  sh, zh: sh, hh: openGlottis, ch: [alveolar, sh], jh: [alveolar, sh],
+  m: bilabial, n: alveolar, ng: velar, l: alveolar, r: rhotic,
+  y: high, w: roundedHigh,
+};
+
+function aligned(profile, [word, target]) {
+  const frames = [[0, rest]];
+  let start = 0;
+  for (const [phone, end] of segmentsByWord[word]) {
+    const shape = phonePoses[phone];
+    const [from, to] = Array.isArray(shape) ? shape : [shape, shape];
+    const position = !Array.isArray(shape) && phone === target ? profile.focus : from;
+    const span = end - start;
+    frames.push([start + span * .15, position], [start + span * .85, Array.isArray(shape) ? to : position]);
+    start = end;
+  }
+  frames.push([start, rest]);
+  return clip(word, profile.focus, frames);
+}
+
+export const motions = Object.fromEntries(Object.entries(schematicMotions).map(([ipa, profile]) =>
+  [ipa, targets[ipa] ? aligned(profile, targets[ipa]) : profile]));
 
 export function sample(frames, at) {
   const progress = Math.max(0, Math.min(1, at));
