@@ -36,7 +36,7 @@ chromium --headless --remote-debugging-port=9223 --user-data-dir=/tmp/erl-test-p
 node tests/browser.mjs
 ```
 
-A suíte cobre larguras de 320, 390, 768 e 1280 px, avanço, progresso das duas trilhas, decodificação dos 37 modelos, reprodução dos cinco prioritários, pausa, câmera lenta, repetição, teste auditivo local, gravação e reprodução. Os retornos do reconhecimento são injetados para reproduzir condições de corrida e validar a regra do modo estrito. Qualidade da pronúncia, microfone físico e o serviço externo de reconhecimento exigem validação própria.
+A suíte cobre larguras de 320, 390, 768 e 1280 px, avanço, progresso das duas trilhas, carregamento do logotipo, reprodução completa dos 37 modelos e movimento em ambas as vistas, pausa, câmera lenta, repetição, teste auditivo local, gravação e reprodução. Os retornos do reconhecimento são injetados para reproduzir condições de corrida e validar a regra do modo estrito. Qualidade da pronúncia, microfone físico e o serviço externo de reconhecimento exigem validação própria.
 
 ## Revisão da base e publicação
 
@@ -47,3 +47,5 @@ Em 24/11/2026, o Render informava `autoDeploy: yes`, disparo por commit, branch 
 Às 16:16 UTC, um novo deploy manual publicou `f0c9b9d`. Isso atualizou o site, mas o histórico continuou sem um disparo automático. O GitHub retornou HTTP 403 para a leitura de webhooks com a credencial desta sessão, então a entrega de eventos ao Render permanece sem verificação.
 
 A documentação do Render informa que um serviço criado por URL pública faz deploy manual e que o deploy automático exige um provedor Git conectado. A origem cadastrada aparece como URL nos dados disponíveis, que não identificam o tipo de conexão. A verificação seguinte no painel é confirmar se o serviço está ligado ao GitHub como provedor e se a instalação do Render recebe eventos deste repositório. A validação da correção precisa observar um deploy automático originado por um commit de produção aprovado. [Documentação do Render](https://render.com/docs/deploys#automatic-deploys)
+
+Em 25/11/2026, o HTML servido em produção ainda correspondia byte a byte a `f0c9b9d`. A `main` já estava em `26b5adb`, com a identidade visual aprovada. A branch do laboratório incorporou essa identidade e a suíte de navegador verifica o logotipo e o favicon junto com a reprodução.

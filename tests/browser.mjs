@@ -61,30 +61,35 @@ try {
   await click('#navPronunciation');
   assert.equal(await evaluate("document.querySelector('main').hidden"), false);
   assert.equal(await evaluate("document.querySelectorAll('#catalog .done').length"), 2);
+  await until("document.querySelector('img.logo')?.naturalWidth > 0");
+  assert.ok(await evaluate("document.querySelector('link[rel=icon]').href.endsWith('/logo.svg')"));
   for (const width of [320, 390, 768, 1280]) {
     await viewport(width, 844);
     assert.ok(await evaluate('document.documentElement.scrollWidth <= innerWidth'), 'layout at ' + width);
   }
   await viewport(390, 844);
-  for (const index of [28, 29, 0, 1, 3]) {
-    await click(`[data-sound="${index}"]`);
-    await click('#labPlay');
-    await until("document.querySelector('#labDemo').currentTime > .025");
-    assert.equal(await evaluate("document.querySelectorAll('.mouth-views svg').length"), 2);
-  }
   const aligned = await evaluate(`import('/pronunciation/motion.mjs').then(module =>
     Object.values(module.motions).flatMap((motion, index) => motion.clip ? [[index, motion.duration]] : []))`);
   assert.equal(aligned.length, 37);
   for (const [index, expectedDuration] of aligned) {
     await click(`[data-sound="${index}"]`);
-    const duration = await evaluate(`new Promise(resolve => {
-      const audio = document.querySelector('#labDemo');
-      audio.onloadedmetadata = () => resolve(audio.duration);
-      audio.addEventListener('error', () => resolve(false), { once: true });
-      audio.preload = 'metadata';
-      audio.load();
-    })`);
+    await evaluate(`window.testMotion = [];
+      for (const view of document.querySelectorAll('.mouth-views svg')) {
+        const entry = { changed: false };
+        entry.observer = new MutationObserver(records => {
+          entry.changed ||= records.some(record => record.oldValue !== record.target.getAttribute('d'));
+        });
+        entry.observer.observe(view, { subtree: true, attributes: true, attributeFilter: ['d'], attributeOldValue: true });
+        window.testMotion.push(entry);
+      }`);
+    await click('#labPlay');
+    await until("document.querySelector('#labDemo').ended");
+    const duration = await evaluate("document.querySelector('#labDemo').duration");
     assert.ok(Math.abs(duration - expectedDuration) < .09, 'clip duration for index ' + index);
+    assert.deepEqual(await evaluate(`testMotion.map(entry => {
+      entry.observer.disconnect();
+      return entry.changed;
+    })`), [true, true], 'both views moved during playback for index ' + index);
   }
   await click('[data-sound="28"]');
   await evaluate(`document.querySelector('#labSpeed').value = '.5';
@@ -175,7 +180,7 @@ try {
     const { data } = await send('Page.captureScreenshot', { format: 'png' });
     await writeFile(process.env.ERL_SCREENSHOT, Buffer.from(data, 'base64'));
   }
-  console.log('Chromium OK: 4 viewports, 37 aligned profiles decoded, 5 prioritized playback paths, pause/resume/loop, silent motion, local listening quiz, MediaRecorder with test device, progress and recognition state.');
+  console.log('Chromium OK: 4 viewports, brand loaded, 37 clips finished and moved both views, pause/resume/loop, silent motion, local listening quiz, MediaRecorder with test device, progress and recognition state.');
 } finally {
   socket.close();
 }
