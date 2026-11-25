@@ -1,0 +1,41 @@
+[hidden] { display: none !important; }
+:focus-visible { outline: 3px solid #92e9c8; outline-offset: 3px; }
+nav { flex-wrap: wrap; }
+.layout { grid-template-columns: 300px minmax(0, 1fr); }
+.settings .hint { min-width: min(250px, 100%); }
+.lesson { min-width: 0; overflow-wrap: anywhere; }
+.head { flex-wrap: wrap; padding-block: 9px; }
+.head .tag { margin-left: auto; }
+.lab {
+  border: 1px solid #477a80;
+  border-radius: 14px;
+  padding: 16px;
+  margin: 16px 0;
+}
+.lab-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-block: 8px;
+}
+.lab-buttons button, .lab-repeat { min-height: 44px; }
+.lab-buttons select { width: auto; padding: 8px; }
+.lab-repeat { display: flex; align-items: center; gap: 6px; }
+.lab-repeat input { width: 18px; height: 18px; }
+.lab a { color: #8eeac6; }
+.lab h4 { margin: 20px 0 8px; }
+.lab [role="status"]:empty { margin: 0; }
+.lab audio[controls] { width: 100%; max-width: 100%; margin-block: 8px; }
+.mouth-views { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.mouth-views figure { margin: 0; text-align: center; background: #08242f; border-radius: 10px; padding: 6px; }
+.mouth-views svg { display: block; width: 100%; max-height: 190px; }
+.mouth-views figcaption { color: #c6d7db; font-size: .82rem; padding-bottom: 5px; }
+@media (max-width: 750px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .lab { padding: 12px; }
+}
+@media (max-width: 390px) {
+  .head .tag { margin-left: 0; }
+  .actions { flex-wrap: wrap; }
+}
