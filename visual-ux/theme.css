@@ -1,0 +1,19 @@
+/* Visual UX V01 — presentation only; no learning state or engine changes. */
+:root{--ux-bg:#f5f7f6;--ux-surface:#fff;--ux-ink:#142b30;--ux-muted:#52676b;--ux-primary:#145b59;--ux-mint:#a7e8d0;--ux-border:#c8d5d2;--ux-focus:#145b59;color:var(--ux-ink);background:var(--ux-bg);font-size:16px}
+body{background:var(--ux-bg);line-height:1.5}
+header{background:var(--ux-surface);border-color:var(--ux-border)}
+.head{min-height:64px}.head small,.hint,.tiny,.secondary,.settings label,.lesson>p,.bottom p,.practice p,.result p,.item small,.metric small{color:var(--ux-muted)}
+.tag,.eyebrow,.lesson h2,.score,.step.active{color:var(--ux-primary)}
+.tag{border-color:var(--ux-border)}.hero{padding:16px 0}.hero h1{font-size:clamp(26px,4vw,38px);letter-spacing:-.7px;margin:4px 0}.hero h1 em{color:var(--ux-primary)}.hero p{color:var(--ux-muted);margin:4px 0}
+.card,.lab,.result,.practice{background:var(--ux-surface);border:1px solid var(--ux-border);box-shadow:none;border-radius:16px}
+button,select,input{font:inherit;min-height:44px;border:1px solid #879f9b;background:var(--ux-surface);color:var(--ux-ink);border-radius:10px}
+button{font-weight:650}button.primary,nav button[aria-pressed=true]{background:var(--ux-primary);border-color:var(--ux-primary);color:white}
+button:disabled{opacity:.55}button:hover:not(:disabled){filter:none;box-shadow:0 0 0 2px var(--ux-mint)}
+:focus-visible{outline:3px solid var(--ux-focus);outline-offset:3px}
+.item{background:var(--ux-surface);color:var(--ux-ink);border-color:var(--ux-border)}.item.active{background:#e1f4eb;border-color:var(--ux-primary)}.item.done{border-left-color:var(--ux-primary)}
+.step{color:var(--ux-muted)}.step b,.metric,.word,.wordchip{background:#e1f4eb;color:var(--ux-ink)}.word.low,.wordchip.bad{background:#fce6e1;color:#8c2418}.warning{background:#fff0d5;color:#784500}.result.good{border-color:var(--ux-primary)}.result.warn{border-color:#925400}
+.links a,.lab a,.audiofile{color:var(--ux-primary)}.guide{border-color:var(--ux-primary)}.mouth-views figure{background:#edf3f1}.mouth-views figcaption{color:var(--ux-muted)}
+.ux-disclosure{margin:0 0 12px;background:var(--ux-surface);border:1px solid var(--ux-border);border-radius:12px;padding:0 14px}.ux-disclosure>summary{min-height:44px;display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:650;color:var(--ux-primary)}.ux-disclosure>summary::before{content:'+';font-size:20px}.ux-disclosure[open]>summary::before{content:'−'}.ux-disclosure .settings{border:0;padding:8px 0;margin:0}.ux-disclosure .sidebar{border:0;padding:0;max-height:360px}.ux-disclosure .bottom{border:0;margin:0;padding:8px 0}
+.layout{grid-template-columns:minmax(0,1fr)}.lesson{padding:clamp(12px,3vw,24px)}.lesson h2{font-size:clamp(36px,7vw,54px)}.practice{background:#edf6f2}.target{overflow-wrap:anywhere}.steps{gap:6px}.controls button{min-width:0}.lab-repeat input{min-height:0}.head .tag{font-size:12px}
+@media(max-width:750px){.wrap{padding-inline:12px}.head{gap:8px}.head .logo{width:40px;height:40px}.head .tag{margin-left:0}.hero{padding:8px 0 12px}.ux-disclosure .sidebar{max-height:240px}.actions{flex-wrap:wrap}.actions button{flex:1}.settings>div:not(.hint){min-width:0;flex-basis:100%}.controls button{flex:1 1 120px}}
+@media(prefers-reduced-motion:reduce){button{transition:none!important}}
